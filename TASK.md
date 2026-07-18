@@ -62,7 +62,7 @@ Search the codebase for **`TODO(candidate)`**. In short:
       **status** column, a **run / re-run** action, and a **detail view** showing each enriched field with
       its source + confidence. Keep it responsive assuming ~100k rows.
 - [✓] **Load the seed** (`companies_seed.json`) into the DB — however you like (SQL, a quick script, or a UI action).
-- [ ] **Fill in `README.md`** — setup, architecture, decisions/trade-offs, what you cut and what's next.
+- [✓] **Fill in `README.md`** — setup, architecture, decisions/trade-offs, what you cut and what's next.
 
 ### Stretch (optional — only if the core is solid)
 - [ ] A second, **structured filter** (e.g. by industry or status) on the dashboard.
