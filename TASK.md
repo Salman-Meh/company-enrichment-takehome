@@ -58,7 +58,7 @@ Search the codebase for **`TODO(candidate)`**. In short:
       it strictly, **retry / fall back** on bad output (never persist unvalidated data), and **persist**
       the result + status + source. Implementing the real OpenAI/Mistral call is welcome; keeping the
       mock provider is fine if you focus on reliability + persistence.
-- [ ] **Frontend** (`web/src/`): server-side **pagination** + a **free-text filter**, an enrichment
+- [✓] **Frontend** (`web/src/`): server-side **pagination** + a **free-text filter**, an enrichment
       **status** column, a **run / re-run** action, and a **detail view** showing each enriched field with
       its source + confidence. Keep it responsive assuming ~100k rows.
 - [✓] **Load the seed** (`companies_seed.json`) into the DB — however you like (SQL, a quick script, or a UI action).
