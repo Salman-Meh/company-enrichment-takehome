@@ -50,7 +50,7 @@ the `companies` table, and the seed data.
 
 Search the codebase for **`TODO(candidate)`**. In short:
 
-- [ ] **Database** (`supabase/migrations/`): design the enrichment table — an enrichment **status** plus a
+- [✓] **Database** (`supabase/migrations/`): design the enrichment table — an enrichment **status** plus a
       `source` / `model` column so each field's provenance is visible — the indexes your dashboard needs,
       and **one RLS policy**. In the README, explain how the policy isolates rows and how you'd test it.
       (Wiring real auth to exercise it end-to-end is a stretch, not required.)
@@ -61,7 +61,7 @@ Search the codebase for **`TODO(candidate)`**. In short:
 - [ ] **Frontend** (`web/src/`): server-side **pagination** + a **free-text filter**, an enrichment
       **status** column, a **run / re-run** action, and a **detail view** showing each enriched field with
       its source + confidence. Keep it responsive assuming ~100k rows.
-- [ ] **Load the seed** (`companies_seed.json`) into the DB — however you like (SQL, a quick script, or a UI action).
+- [✓] **Load the seed** (`companies_seed.json`) into the DB — however you like (SQL, a quick script, or a UI action).
 - [ ] **Fill in `README.md`** — setup, architecture, decisions/trade-offs, what you cut and what's next.
 
 ### Stretch (optional — only if the core is solid)
@@ -76,9 +76,10 @@ Search the codebase for **`TODO(candidate)`**. In short:
 ---
 
 ## Prerequisites
+
 - Node 18+ and npm
 - [Supabase CLI](https://supabase.com/docs/guides/cli) + Docker (for local Postgres + Edge Functions)
-- *(optional)* an OpenAI or Mistral API key — **not required**, the mock provider runs without one
+- _(optional)_ an OpenAI or Mistral API key — **not required**, the mock provider runs without one
 
 ## Setup
 
@@ -108,6 +109,7 @@ that's fine; just document what you did in the README.
 ---
 
 ## Ground rules
+
 - Time-box to ~1 day. It's fine to stub or fake parts — just say so in the README.
 - Stick to the stack: React + TypeScript, Supabase (Postgres + Edge Functions / Deno), OpenAI or Mistral.
 - **Commit incrementally** — we read your git history to understand how you work, so please don't
@@ -115,6 +117,7 @@ that's fine; just document what you did in the README.
 - Never commit secrets. `.env` is gitignored; keep keys out of the repo.
 
 ## Submission
+
 Push to a git repo (GitHub / GitLab) and send us the link. We'll then schedule a session where you
 **walk us through your work, answer questions on it, and build a small extension live** (~1 hour).
 

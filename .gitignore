@@ -12,6 +12,10 @@ web/.env.local
 # Supabase local
 supabase/.branches/
 supabase/.temp/
+supabase/config.toml
 
 # misc
 .DS_Store
+
+# local dev server logs
+.dev/
