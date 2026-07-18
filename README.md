@@ -55,7 +55,7 @@ TMPDIR=~/.supabase-tmp/ supabase functions serve enrich --env-file ./.env
 Leave this running in its own terminal. (The `TMPDIR` prefix points the function's temp staging at a folder under `$HOME` instead of the system default — required on Colima, since it only shares `$HOME` into its VM by default and the system temp dir lives outside it; harmless on Docker Desktop, so it's included unconditionally rather than as a conditional step.)
 
 ### 5. Run the web app
-In an new terminal window: 
+In a new terminal window:
 ```bash
 cd web
 npm install
@@ -142,7 +142,7 @@ Row Level Security sits underneath all of this: every browser-side read/write go
 - **A failed re-run never clears a previous good result.** Status flips to `failed`, but `enrichment_results` is only ever touched on a successful validation. Industry/HQ/employee-size are slow-moving facts about a real company — a bad retry reflects a pipeline hiccup, not new ground truth, so destroying a previously-good result would be worse UX than showing slightly stale (but still correct) data next to an honest "last refresh failed" status.
 - **The auth check verifies the JWT for real** (`supabase.auth.getUser()`), not just that a header is present. Added on request, since Kong already verifies signatures at the gateway by default (proven: a malformed bearer token gets rejected before the function code even runs). It logs identity when a real user is present but doesn't reject the anon key, since the entire app runs without a login flow by design.
 
-##xxw# Frontend
+### Frontend
 - **Offset/limit pagination, fixed at 10 rows/page**, via Supabase's `.range()` + `count: 'exact'`. Simplest option, and matches what `ListParams` was already stubbed for. (Keyset/cursor pagination scales better at very deep pages, but trades away "jump to page N" and adds real query complexity for a benefit that doesn't show up until you're many thousands of rows deep.)
 - **Free-text filter on `name` only**, via `ILIKE`, deliberately matching the `pg_trgm` index built for it — rather than a broader multi-column search that would need more index/query surface.
 - **Lean list query, separate per-company detail fetch.** The list query (run on every page load and filter keystroke) selects only what the table displays; `enrichment_results` is fetched once, on demand, when a row is actually clicked. Keeps the hot path fast at the stated 100k-row scale — embedding `enrichment_results` in the list query would carry enrichment payloads for rows that aren't even being viewed.
@@ -237,7 +237,7 @@ export const EnrichmentResultSchema = z.object({
 
 # What I deliberately left out / would do next
 
-## Left out (and why)
+### Left out (and why)
 - **Real login/authentication.** The whole app runs on the anon key with no signup/session flow. The RLS model is fully built and verified (see **RLS model** → "How to test it"), but only via a SQL-level simulation of two users, not real ones — wiring real auth end-to-end is explicitly a stretch goal in `TASK.md`, not required for the core.
 - **A real LLM provider (OpenAI/Mistral).** `enrichWithLLM`'s `openai`/`mistral` branches are intentionally stubbed to throw — `TASK.md` explicitly says the mock provider is sufficient if the focus is reliability + persistence. One side effect of this: the retry/fallback logic is implemented correctly but isn't naturally exercised in the live demo, since the mock is deterministic and always produces valid output — there's no genuine "bad output" for it to react to (see **LLM reliability** for how to trigger it temporarily).
 - **A second, structured filter** (by status or industry) on the dashboard — stretch item, not built. Status is shown as a column but isn't filterable through the UI.
@@ -247,11 +247,11 @@ export const EnrichmentResultSchema = z.object({
 - **An automated test suite.** Validation and retry logic were verified manually during development (a throwaway script fed `validateEnrichment` deliberately malformed input directly; the Edge Function was hit with real HTTP calls end-to-end) but none of that was turned into a committed, repeatable test suite.
 - **Cost/latency analysis** for enriching at scale — stretch item, not written.
 
-## A couple of gaps worth naming honestly
+### A couple of gaps worth naming honestly
 - **Single-owner RLS instead of a tenant/organization model.** `owner_id` ties a row to exactly one user, but a real product would need multiple employees of the same customer organization sharing access. That needs an `organizations` table plus a `user ↔ organization` membership join, with the policy checking membership instead of a literal `owner_id` match. Chose the simpler single-owner model here since `TASK.md` only asks the isolation *mechanism* to be demonstrated, not real multi-tenancy solved.
 - **`companies.enrichment_status` can be set directly via the REST API**, bypassing the Edge Function entirely. `authenticated`/`anon` have `UPDATE` on their own rows (needed for the RLS policies to mean anything), but nothing currently stops a client from `PATCH`ing `enrichment_status` straight to `'enriched'` without ever calling the LLM or validating anything. Not exploited by the frontend (which only ever calls the Edge Function), but it's a real gap, not a hardened one.
 
-## Would do next, roughly in priority order
+### Would do next, roughly in priority order
 1. **Implement a real LLM provider** — OpenAI structured outputs is the natural first pick, since the JSON schema for it already exists in `llm.ts`. Highest-leverage next step: the validation/retry/persistence scaffolding is already built around exactly this, and it would finally exercise the retry-then-fail path for real instead of by temporarily misconfiguring the mock.
 2. **Wire real login** (Supabase Auth, e.g. email / magic link) and set `owner_id = auth.uid()` on companies a signed-in user creates — turns the already-built, already-tested RLS policy from "verified via simulation" into something actually exercised end-to-end by real users.
 3. **Move from `owner_id` to a proper tenant/organization model** (`organizations` + membership table) once real login exists — the realistic long-term shape for shared team access, instead of single-owner rows.
