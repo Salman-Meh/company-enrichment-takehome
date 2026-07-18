@@ -4,18 +4,24 @@
 // Implementing the real OpenAI/Mistral call is welcome but optional — what we
 // really want to see is reliable, validated, structured output.
 // =============================================================================
+import { z } from "npm:zod@3";
 
 export type EmployeeSizeBucket =
   | "1-50" | "51-200" | "201-1000" | "1001-5000" | "5000+";
 
-// The structured shape every enrichment must conform to.
-export interface EnrichmentResult {
-  industry: string;
-  employee_size_bucket: EmployeeSizeBucket;
-  hq_country: string;
-  one_line_summary: string;
-  confidence: number; // 0..1
-}
+// Single source of truth for the structured shape every enrichment must
+// conform to. Mirrors ENRICHMENT_JSON_SCHEMA below field-for-field; the two
+// aren't derived from one another (JSON Schema is handed to LLM APIs, zod
+// validates the response), so keep them in sync by hand if either changes.
+export const EnrichmentResultSchema = z.object({
+  industry: z.string(),
+  employee_size_bucket: z.enum(["1-50", "51-200", "201-1000", "1001-5000", "5000+"]),
+  hq_country: z.string(),
+  one_line_summary: z.string().max(160),
+  confidence: z.number().min(0).max(1),
+}).strict();
+
+export type EnrichmentResult = z.infer<typeof EnrichmentResultSchema>;
 
 export interface CompanyInput {
   id: string;
@@ -82,14 +88,10 @@ function mockEnrich(company: CompanyInput): EnrichmentResult {
   };
 }
 
-// TODO(candidate): make this STRICT and schema-bound. Right now it barely checks.
-// This is the line of defense that keeps bad model output out of your database:
-// verify every required field, enum membership, and that confidence is in [0,1].
-// (zod is a good fit. Throw on anything that doesn't conform.)
+// The line of defense that keeps bad model output out of the database: every
+// required field, enum membership, and the confidence range are checked.
+// Throws (ZodError) on anything that doesn't conform — callers rely on this
+// to trigger a retry rather than ever persisting the result.
 export function validateEnrichment(raw: unknown): EnrichmentResult {
-  const r = raw as EnrichmentResult;
-  if (!r || typeof r.industry !== "string") {
-    throw new Error("Enrichment failed validation (TODO: implement real checks)");
-  }
-  return r;
+  return EnrichmentResultSchema.parse(raw);
 }

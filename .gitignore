@@ -19,3 +19,6 @@ supabase/config.toml
 
 # local dev server logs
 .dev/
+
+# vscode
+.vscode/

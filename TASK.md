@@ -54,7 +54,7 @@ Search the codebase for **`TODO(candidate)`**. In short:
       `source` / `model` column so each field's provenance is visible — the indexes your dashboard needs,
       and **one RLS policy**. In the README, explain how the policy isolates rows and how you'd test it.
       (Wiring real auth to exercise it end-to-end is a stretch, not required.)
-- [ ] **Edge Function** (`supabase/functions/enrich/`): produce a **structured** enrichment, **validate**
+- [✓] **Edge Function** (`supabase/functions/enrich/`): produce a **structured** enrichment, **validate**
       it strictly, **retry / fall back** on bad output (never persist unvalidated data), and **persist**
       the result + status + source. Implementing the real OpenAI/Mistral call is welcome; keeping the
       mock provider is fine if you focus on reliability + persistence.
