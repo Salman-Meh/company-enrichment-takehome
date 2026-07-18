@@ -49,11 +49,8 @@ const PROVIDER = Deno.env.get("LLM_PROVIDER") ?? "mock";
 export async function enrichWithLLM(company: CompanyInput): Promise<unknown> {
   switch (PROVIDER) {
     case "openai":
-      // TODO(candidate): real OpenAI call using structured outputs +
-      // ENRICHMENT_JSON_SCHEMA. Read the key from OPENAI_API_KEY.
       throw new Error("LLM_PROVIDER=openai not implemented yet");
     case "mistral":
-      // TODO(candidate): real Mistral call using structured outputs.
       throw new Error("LLM_PROVIDER=mistral not implemented yet");
     case "mock":
     default:

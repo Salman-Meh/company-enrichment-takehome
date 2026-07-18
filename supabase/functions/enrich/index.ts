@@ -1,11 +1,3 @@
-// =============================================================================
-// Edge Function: enrich
-// The request/response plumbing, CORS, and an auth seam are wired up.
-// The three things we care about are left for you (see TODOs):
-//   1) strict validation of the LLM output
-//   2) retry / fallback when the model misbehaves
-//   3) persisting the result + status + provenance to your tables
-// =============================================================================
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { enrichWithLLM, validateEnrichment, type EnrichmentResult } from "./llm.ts";
@@ -16,13 +8,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // --- Auth ----------------------------------------------------------------
-    // TODO(candidate): decide what "authenticated" means here. The simplest
-    // version checks the Authorization header / verifies the Supabase JWT.
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return json({ error: "Missing Authorization header" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Missing or malformed Authorization header" }, 401);
     }
+    const token = authHeader.slice("Bearer ".length);
 
     const { companyId } = await req.json().catch(() => ({}));
     if (!companyId) return json({ error: "companyId is required" }, 400);
@@ -31,6 +21,19 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Verify the caller's token against Supabase Auth itself (Kong already
+    // rejects malformed/garbage JWTs at the gateway before this code runs —
+    // this goes further and checks who it actually belongs to). The anon key
+    // has no `sub` claim, so getUser() errors on it; that's expected for an
+    // anonymous caller, not a reason to reject — this app has no login flow,
+    // so every request is anonymous today. Identity is logged, not enforced.
+    const { data: authData } = await supabase.auth.getUser(token);
+    console.log(
+      authData?.user
+        ? `enrich called by authenticated user ${authData.user.id}`
+        : "enrich called anonymously (anon key, no session)",
     );
 
     const { data: company, error } = await supabase
