@@ -65,13 +65,17 @@ Deno.serve(async (req: Request) => {
     // a bad retry reflects a pipeline hiccup, not new ground truth about the
     // company.
     if (enrichment) {
-      const { error: upsertError } = await supabase.from("enrichment_results").upsert({
-        company_id: companyId,
-        ...enrichment,
-        source: "mock",
-        model: "mock-v1",
-        enriched_at: new Date().toISOString(),
-      });
+      const { data: persisted, error: upsertError } = await supabase
+        .from("enrichment_results")
+        .upsert({
+          company_id: companyId,
+          ...enrichment,
+          source: "mock",
+          model: "mock-v1",
+          enriched_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
       if (upsertError) return json({ error: upsertError.message }, 500);
 
       const { error: statusError } = await supabase
@@ -80,7 +84,9 @@ Deno.serve(async (req: Request) => {
         .eq("id", companyId);
       if (statusError) return json({ error: statusError.message }, 500);
 
-      return json({ ok: true, companyId, enrichment });
+      // Return the full persisted row (not just the raw LLM output) so
+      // callers can use it directly without a follow-up fetch.
+      return json({ ok: true, companyId, enrichment: persisted });
     }
 
     const { error: failedStatusError } = await supabase
