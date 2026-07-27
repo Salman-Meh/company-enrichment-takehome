@@ -17,8 +17,8 @@ create table if not exists public.companies (
   --     read it with no join at ~100k rows.
   --   * owner_id is nullable: seed/demo rows stay unowned (visible to everyone)
   --     since real auth is a stretch goal, not required for the core.
-  enrichment_status  text not null default 'pending'
-                       check (enrichment_status in ('pending', 'enriched', 'failed')),
+  enrichment_status  text not null default 'not enriched'
+                       check (enrichment_status in ('not enriched', 'pending', 'enriched', 'failed')),
   owner_id           uuid references auth.users(id)
 );
 

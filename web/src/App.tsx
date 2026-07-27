@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { getEnrichment, listCompanies, triggerEnrich } from "./api/companies";
-import type { Company, EnrichmentResult } from "./types";
-import { CompaniesTable } from "./components/CompaniesTable";
-import { CompanyDetail } from "./components/CompanyDetail";
+import { useEffect, useState } from 'react';
+import { getEnrichment, listCompanies, triggerEnrich } from './api/companies';
+import type { Company, EnrichmentResult } from './types';
+import { CompaniesTable } from './components/CompaniesTable';
+import { CompanyDetail } from './components/CompanyDetail';
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -12,10 +12,12 @@ export default function App() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selected, setSelected] = useState<Company | null>(null);
-  const [enrichmentCache, setEnrichmentCache] = useState<Record<string, EnrichmentResult | null>>({});
+  const [enrichmentCache, setEnrichmentCache] = useState<
+    Record<string, EnrichmentResult | null>
+  >({});
   const [runningIds, setRunningIds] = useState<Set<string>>(new Set());
 
   // Debounce the free-text filter so we don't refetch on every keystroke;
@@ -35,7 +37,11 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true);
-    listCompanies({ page, pageSize: PAGE_SIZE, search: debouncedSearch || undefined })
+    listCompanies({
+      page,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch || undefined,
+    })
       .then((res) => {
         setRows(res.rows);
         setTotal(res.total);
@@ -48,25 +54,37 @@ export default function App() {
     setSelected(company);
     if (!(company.id in enrichmentCache)) {
       getEnrichment(company.id)
-        .then((result) => setEnrichmentCache((prev) => ({ ...prev, [company.id]: result })))
+        .then((result) =>
+          setEnrichmentCache((prev) => ({ ...prev, [company.id]: result })),
+        )
         .catch((e) => console.error(e));
     }
   }
 
-  function handleRun(companyId: string) {
+  function handleRun(companyId: string, status: string) {
     setRunningIds((prev) => new Set(prev).add(companyId));
-    triggerEnrich(companyId)
+    triggerEnrich(companyId, status)
       .then(({ status, enrichment }) => {
-        setRows((prev) => prev.map((r) => (r.id === companyId ? { ...r, enrichment_status: status } : r)));
-        setSelected((prev) => (prev && prev.id === companyId ? { ...prev, enrichment_status: status } : prev));
+        setRows((prev) =>
+          prev.map((r) =>
+            r.id === companyId ? { ...r, enrichment_status: status } : r,
+          ),
+        );
+        setSelected((prev) =>
+          prev && prev.id === companyId
+            ? { ...prev, enrichment_status: status }
+            : prev,
+        );
         // Only overwrite the cached enrichment on success — a failed run
         // never clears a previously-good result (mirrors the backend's
         // last-known-good behavior).
-        if (status === "enriched") {
+        if (status === 'enriched') {
           setEnrichmentCache((prev) => ({ ...prev, [companyId]: enrichment }));
         }
       })
-      .catch((e) => console.error(e))
+      .catch((e) => {
+        throw new Error(e);
+      })
       .finally(() => {
         setRunningIds((prev) => {
           const next = new Set(prev);
@@ -77,13 +95,21 @@ export default function App() {
   }
 
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: 24, maxWidth: 1100, margin: "0 auto" }}>
+    <main
+      style={{
+        fontFamily: 'system-ui, sans-serif',
+        padding: 24,
+        maxWidth: 1100,
+        margin: '0 auto',
+      }}
+    >
       <h1 style={{ marginBottom: 4 }}>Company Enrichment</h1>
-      <p style={{ color: "#666", marginTop: 0 }}>
-        Take-home starter — see <code>TASK.md</code>. Most of this is yours to build.
+      <p style={{ color: '#666', marginTop: 0 }}>
+        Take-home starter — see <code>TASK.md</code>. Most of this is yours to
+        build.
       </p>
 
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         <div style={{ flex: 2, minWidth: 0 }}>
           <CompaniesTable
             rows={rows}

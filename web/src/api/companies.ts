@@ -57,7 +57,8 @@ export interface TriggerEnrichResult {
 
 // Invokes the `enrich` Edge Function and returns exactly what changed, so the
 // caller can patch its local state optimistically instead of refetching.
-export async function triggerEnrich(companyId: string): Promise<TriggerEnrichResult> {
+export async function triggerEnrich(companyId: string, status: string): Promise<TriggerEnrichResult> {
+  if (status == "pending") throw "Status enrichment is pending, please wait."
   const { data, error } = await supabase.functions.invoke("enrich", {
     body: { companyId },
   });

@@ -1,10 +1,10 @@
-import type { Company } from "../types";
+import type { Company } from '../types';
 
 interface Props {
   rows: Company[];
   loading: boolean;
   onSelect: (company: Company) => void;
-  onRun: (companyId: string) => void;
+  onRun: (companyId: string, status: string) => void;
   runningIds: Set<string>;
   search: string;
   onSearchChange: (search: string) => void;
@@ -15,9 +15,9 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "#999",
-  enriched: "#1a7f37",
-  failed: "#c53030",
+  pending: '#999',
+  enriched: '#1a7f37',
+  failed: '#c53030',
 };
 
 export function CompaniesTable({
@@ -38,21 +38,30 @@ export function CompaniesTable({
   return (
     <div>
       <input
-        type="text"
-        placeholder="Filter by name…"
+        type='text'
+        placeholder='Filter by name…'
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        style={{ padding: 8, width: "100%", maxWidth: 320, marginBottom: 12, boxSizing: "border-box" }}
+        style={{
+          padding: 8,
+          width: '100%',
+          maxWidth: 320,
+          marginBottom: 12,
+          boxSizing: 'border-box',
+        }}
       />
 
       {loading ? (
         <p>Loading…</p>
       ) : rows.length === 0 ? (
-        <p>No companies match — load the seed or adjust your filter (see TASK.md).</p>
+        <p>
+          No companies match — load the seed or adjust your filter (see
+          TASK.md).
+        </p>
       ) : (
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
           <thead>
-            <tr style={{ textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>
               <th style={{ padding: 8 }}>Name</th>
               <th style={{ padding: 8 }}>Domain</th>
               <th style={{ padding: 8 }}>Status</th>
@@ -63,23 +72,38 @@ export function CompaniesTable({
             {rows.map((c) => {
               const isRunning = runningIds.has(c.id);
               return (
-                <tr key={c.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                  <td style={{ padding: 8, cursor: "pointer" }} onClick={() => onSelect(c)}>
+                <tr key={c.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                  <td
+                    style={{ padding: 8, cursor: 'pointer' }}
+                    onClick={() => onSelect(c)}
+                  >
                     {c.name}
                   </td>
-                  <td style={{ padding: 8, cursor: "pointer" }} onClick={() => onSelect(c)}>
-                    {c.domain || "—"}
+                  <td
+                    style={{ padding: 8, cursor: 'pointer' }}
+                    onClick={() => onSelect(c)}
+                  >
+                    {c.domain || '—'}
                   </td>
-                  <td style={{ padding: 8, color: STATUS_COLORS[c.enrichment_status] ?? "#999" }}>
+                  <td
+                    style={{
+                      padding: 8,
+                      color: STATUS_COLORS[c.enrichment_status] ?? '#999',
+                    }}
+                  >
                     {c.enrichment_status}
                   </td>
                   <td style={{ padding: 8 }}>
                     <button
-                      onClick={() => onRun(c.id)}
-                      disabled={isRunning}
-                      style={{ cursor: isRunning ? "default" : "pointer" }}
+                      onClick={() => onRun(c.id, c.enrichment_status)}
+                      // disabled={isRunning}
+                      style={{ cursor: isRunning ? 'default' : 'pointer' }}
                     >
-                      {isRunning ? "Running…" : c.enrichment_status === "pending" ? "Run" : "Re-run"}
+                      {isRunning
+                        ? 'Running…'
+                        : c.enrichment_status === 'pending'
+                          ? 'Run'
+                          : 'Re-run'}
                     </button>
                   </td>
                 </tr>
@@ -89,14 +113,24 @@ export function CompaniesTable({
         </table>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          marginTop: 12,
+        }}
+      >
         <button onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
           Previous
         </button>
-        <span style={{ color: "#666" }}>
+        <span style={{ color: '#666' }}>
           Page {page} of {totalPages} ({total} total)
         </span>
-        <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages}
+        >
           Next
         </button>
       </div>
